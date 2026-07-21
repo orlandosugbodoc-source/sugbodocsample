@@ -27,12 +27,7 @@ export function Header() {
           </svg>
         )}
       </div>
-      <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl tracking-tight mt-3">
-        Medical Transcriptionist
-      </h1>
-      <p className="text-sm text-gray-500 font-medium">
-        Secure Browser-Based Medical Conversation Transcription
-      </p>
+
     </header>
   );
 }

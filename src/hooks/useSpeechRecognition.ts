@@ -105,6 +105,7 @@ export function useSpeechRecognition() {
         console.error("Failed to abort speech recognition during unmount:", e);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = () => {
@@ -161,8 +162,22 @@ export function useSpeechRecognition() {
   useEffect(() => {
     if (recognitionRef.current) {
       recognitionRef.current.lang = lang;
+      
+      // If currently listening, stop so it will restart with the new language config in onend
+      if (isListeningRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error("Failed to restart speech recognition for language change:", e);
+        }
+      }
     }
   }, [lang]);
+
+  const setExternalTranscript = (text: string) => {
+    accumulatedTranscriptRef.current = text;
+    setTranscript(text);
+  };
 
   return {
     transcript,
@@ -174,6 +189,7 @@ export function useSpeechRecognition() {
     start,
     stop,
     clear,
+    setTranscript: setExternalTranscript,
     isSupported,
   };
 }

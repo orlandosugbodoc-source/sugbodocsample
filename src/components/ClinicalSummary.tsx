@@ -1,24 +1,67 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/Card";
 import { Button } from "./ui/Button";
-import { generateClinicalSummary } from "../utils/gemini";
-import type { SummaryType } from "../utils/gemini";
-import { Download, Copy, Check, Edit2, Save, X } from "lucide-react";
+import type { SummaryType, PatientMetadata } from "../utils/gemini";
+import { Download, Copy, Check, Edit2, Save, X, Bookmark } from "lucide-react";
+import { MarkdownRenderer } from "./ui/MarkdownRenderer";
+import { initLocalEngine, isLocalEngineReady, generateLocalClinicalSummary, clearLocalCache } from "../utils/webllm";
 
 interface ClinicalSummaryProps {
   transcript: string;
   isRecording: boolean;
+  patientDetails: PatientMetadata;
+  onSaveHistory: (summary: string, summaryType: string) => void;
+  hasSavedThisSession: boolean;
+  initialSummary?: string;
+  initialSummaryType?: SummaryType;
 }
 
-export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProps) {
-  const [summaryType, setSummaryType] = useState<SummaryType>("soap");
-  const [summary, setSummary] = useState("");
+export function ClinicalSummary({
+  transcript,
+  isRecording,
+  patientDetails,
+  onSaveHistory,
+  hasSavedThisSession,
+  initialSummary = "",
+  initialSummaryType = "soap"
+}: ClinicalSummaryProps) {
+  const [summaryType, setSummaryType] = useState<SummaryType>(initialSummaryType);
+  const [summary, setSummary] = useState(initialSummary);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedSummary, setEditedSummary] = useState("");
+  const [editedSummary, setEditedSummary] = useState(initialSummary);
+
+  const [localInitStatus, setLocalInitStatus] = useState<string>("");
+  const [localLoading, setLocalLoading] = useState<boolean>(false);
+  const [resettingCache, setResettingCache] = useState(false);
+
+  const handleResetCache = async () => {
+    setResettingCache(true);
+    setError(null);
+    try {
+      await clearLocalCache();
+      setError("Local AI cache cleared. Please click \"Generate AI Summary\" to retry downloading the model.");
+    } catch (err: any) {
+      setError(err.message || "Failed to clear cache.");
+    } finally {
+      setResettingCache(false);
+    }
+  };
+
+  // Sync with initialSummary prop when loading a saved session
+  useEffect(() => {
+    setSummary(initialSummary);
+    setEditedSummary(initialSummary);
+    setIsEditing(false);
+  }, [initialSummary]);
+
+  // Sync with initialSummaryType prop when loading a saved session
+  useEffect(() => {
+    setSummaryType(initialSummaryType);
+  }, [initialSummaryType]);
 
   // Clear summary when a new recording begins
   useEffect(() => {
@@ -36,17 +79,26 @@ export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProp
       return;
     }
 
-    // Retrieve API key from Vite environment variable or localStorage
-    const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem("sugbodoc_gemini_api_key") || "").trim();
-    if (!apiKey) {
-      setError("Gemini API Key is not configured. Please define VITE_GEMINI_API_KEY in your environment.");
-      return;
-    }
-
-    setLoading(true);
     setError(null);
     try {
-      const result = await generateClinicalSummary(transcript, summaryType, apiKey);
+      // Local AI Provider - lazy load model if not ready
+      if (!isLocalEngineReady()) {
+        setLocalLoading(true);
+        try {
+          await initLocalEngine((report) => {
+            setLocalInitStatus(`${report.text} (${Math.round(report.progress * 100)}%)`);
+          });
+        } catch (err: any) {
+          setError(err.message || "Failed to load local AI model.");
+          setLocalLoading(false);
+          return;
+        } finally {
+          setLocalLoading(false);
+        }
+      }
+
+      setLoading(true);
+      const result = await generateLocalClinicalSummary(transcript, summaryType, patientDetails);
       setSummary(result);
       setEditedSummary(result);
       setIsEditing(false);
@@ -88,7 +140,7 @@ export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProp
     <Card className="w-full flex-grow flex flex-col h-[480px] md:h-[500px]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="flex items-center gap-1.5 text-gray-900">
-          Clinical Summary
+          Clinical Summary (Offline AI)
         </CardTitle>
       </CardHeader>
       
@@ -105,6 +157,7 @@ export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProp
               <option value="soap">SOAP Note</option>
               <option value="patient">Patient Instructions</option>
               <option value="memo">Clinical Memo</option>
+              <option value="encounter">FHIR Patient Encounter</option>
             </select>
           </div>
 
@@ -120,7 +173,14 @@ export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProp
 
         {/* Content Display/Edit Area */}
         <div className="flex-grow overflow-y-auto min-h-0 relative">
-          {loading ? (
+          {localLoading ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-white/90">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-3"></div>
+              <p className="text-sm font-semibold text-gray-700">Loading Local AI Model...</p>
+              <p className="text-xs text-gray-400 mt-1.5 max-w-xs">{localInitStatus}</p>
+              <p className="text-[10px] text-gray-400 mt-3 italic max-w-xs">(Requires downloading ~1.2GB of model weights, cached locally for offline use)</p>
+            </div>
+          ) : loading ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-white/80">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600 mb-3"></div>
               <p className="text-sm font-medium text-gray-600">Analyzing medical transcript...</p>
@@ -130,6 +190,18 @@ export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProp
             <div className="p-4 bg-red-50 text-red-800 rounded-lg border border-red-100 text-xs">
               <h5 className="font-semibold">Error Generating Note</h5>
               <p className="mt-1">{error}</p>
+              {(error.toLowerCase().includes("cache") ||
+                error.toLowerCase().includes("download") ||
+                error.toLowerCase().includes("network") ||
+                error.toLowerCase().includes("hugging face")) && (
+                <button
+                  onClick={handleResetCache}
+                  disabled={resettingCache}
+                  className="mt-2.5 px-3 py-1.5 bg-red-100 text-red-900 border border-red-200 rounded-lg font-semibold text-[10px] cursor-pointer hover:bg-red-200/75 transition-all disabled:opacity-60"
+                >
+                  {resettingCache ? "Clearing..." : "Reset local AI Cache"}
+                </button>
+              )}
             </div>
           ) : !summary ? (
             <div className="h-full flex items-center justify-center text-center">
@@ -148,8 +220,8 @@ export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProp
               onChange={(e) => setEditedSummary(e.target.value)}
             />
           ) : (
-            <div className="text-gray-800 leading-relaxed text-sm whitespace-pre-wrap select-text markdown-content">
-              {summary}
+            <div className="text-gray-800 leading-relaxed text-sm select-text markdown-content">
+              <MarkdownRenderer content={summary} />
             </div>
           )}
         </div>
@@ -196,6 +268,15 @@ export function ClinicalSummary({ transcript, isRecording }: ClinicalSummaryProp
             </div>
 
             <div className="flex gap-2">
+              <Button
+                onClick={() => onSaveHistory(isEditing ? editedSummary : summary, summaryType)}
+                disabled={hasSavedThisSession}
+                variant={hasSavedThisSession ? "secondary" : "primary"}
+                className="h-8 px-3.5 text-xs"
+              >
+                <Bookmark className="w-3.5 h-3.5 mr-1" />
+                {hasSavedThisSession ? "Saved" : "Save to History"}
+              </Button>
               <Button
                 onClick={handleCopy}
                 variant="secondary"

@@ -39,7 +39,7 @@ export function TranscriptActions({ transcript, onDownload, disabled = false }: 
         ) : (
           <>
             <Copy className="w-4 h-4 mr-2 stroke-[2.5]" />
-            Copy Transcript
+            Copy
           </>
         )}
       </Button>
@@ -51,7 +51,7 @@ export function TranscriptActions({ transcript, onDownload, disabled = false }: 
         className="sm:flex-1"
       >
         <Download className="w-4 h-4 mr-2 stroke-[2.5]" />
-        Download Transcript (.txt)
+        Download
       </Button>
     </div>
   );

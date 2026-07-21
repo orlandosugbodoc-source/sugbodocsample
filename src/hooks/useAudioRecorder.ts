@@ -38,7 +38,7 @@ export function useAudioRecorder() {
       stream.getTracks().forEach((track) => track.stop());
       setPermission("granted");
       return true;
-    } catch (error) {
+    } catch {
       setPermission("denied");
       return false;
     }
@@ -84,6 +84,14 @@ export function useAudioRecorder() {
 
     } catch (error) {
       console.error("Error starting recording:", error);
+      // Clean up the stream if it was opened to turn off the microphone light
+      if (streamRef.current) {
+        try {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+        } catch {}
+        streamRef.current = null;
+      }
+      setStream(null);
       setPermission("denied");
       throw error;
     }
@@ -122,7 +130,7 @@ export function useAudioRecorder() {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
         try {
           mediaRecorderRef.current.stop();
-        } catch (e) {
+        } catch {
           // Ignored
         }
       }

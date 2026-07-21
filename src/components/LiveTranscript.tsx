@@ -36,7 +36,7 @@ export function LiveTranscript({
           <button
             onClick={() => onLanguageChange("en-US")}
             className={cn(
-              "text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+              "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
               selectedLanguage === "en-US"
                 ? "bg-primary text-white shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
@@ -47,13 +47,24 @@ export function LiveTranscript({
           <button
             onClick={() => onLanguageChange("fil-PH")}
             className={cn(
-              "text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+              "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
               selectedLanguage === "fil-PH"
                 ? "bg-primary text-white shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
             )}
           >
-            Filipino / Taglish
+            Tagalog
+          </button>
+          <button
+            onClick={() => onLanguageChange("ceb-PH")}
+            className={cn(
+              "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+              selectedLanguage === "ceb-PH"
+                ? "bg-primary text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            Bisaya
           </button>
         </div>
       </CardHeader>

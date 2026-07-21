@@ -113,12 +113,12 @@ export function AudioVisualizer({ stream, isRecording }: AudioVisualizerProps) {
       if (sourceRef.current) {
         try {
           sourceRef.current.disconnect();
-        } catch (_) {}
+        } catch {}
       }
       if (audioContextRef.current && audioContextRef.current.state !== "closed") {
         try {
           audioContextRef.current.close();
-        } catch (_) {}
+        } catch {}
       }
     };
   }, [stream, isRecording]);

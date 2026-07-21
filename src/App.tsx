@@ -9,8 +9,14 @@ import { TranscriptActions } from "./components/TranscriptActions";
 import { useAudioRecorder } from "./hooks/useAudioRecorder";
 import { useSpeechRecognition } from "./hooks/useSpeechRecognition";
 import { AudioVisualizer } from "./components/AudioVisualizer";
-import { AlertCircle, ShieldAlert } from "lucide-react";
+import { AlertCircle, ShieldAlert, History, HelpCircle, FileText } from "lucide-react";
 import { ClinicalSummary } from "./components/ClinicalSummary";
+import { PatientDetails } from "./components/PatientDetails";
+import { HistorySidebar } from "./components/HistorySidebar";
+import { HelpModal } from "./components/HelpModal";
+import { SampleSummaryModal } from "./components/SampleSummaryModal";
+import type { HistoryItem } from "./components/HistorySidebar";
+import type { PatientMetadata, SummaryType } from "./utils/gemini";
 
 function App() {
   const {
@@ -33,9 +39,41 @@ function App() {
     isSupported: isSpeechSupported,
     lang,
     setLang,
+    setTranscript,
   } = useSpeechRecognition();
 
   const [status, setStatus] = useState<StatusType>("ready");
+
+  // Patient & Visit Metadata State
+  const [patientDetails, setPatientDetails] = useState<PatientMetadata>({
+    name: "",
+    age: "",
+    gender: "",
+    date: new Date().toISOString().split("T")[0]
+  });
+
+  // Local Storage Consultation History
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    try {
+      const saved = localStorage.getItem("sugbodoc_consultation_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to load history:", e);
+      return [];
+    }
+  });
+
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isSampleOpen, setIsSampleOpen] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [loadedSummary, setLoadedSummary] = useState("");
+  const [loadedSummaryType, setLoadedSummaryType] = useState<SummaryType>("soap");
+
+  // Persist history updates to localStorage
+  useEffect(() => {
+    localStorage.setItem("sugbodoc_consultation_history", JSON.stringify(history));
+  }, [history]);
 
   // Keep transcription status in sync with recorder hooks
   useEffect(() => {
@@ -68,6 +106,7 @@ function App() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAudioRecording, micPermission]);
 
   const handleToggleRecording = async () => {
@@ -83,6 +122,9 @@ function App() {
       try {
         await startRecording();
         startSpeech();
+        // Clear active session since this is a new recording
+        setActiveSessionId(null);
+        setLoadedSummary("");
       } catch (err) {
         console.error("Failed to start recording:", err);
       }
@@ -103,10 +145,113 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  // Save consultation to History (localStorage)
+  const handleSaveHistory = (summaryText: string, type: string) => {
+    if (!summaryText.trim()) return;
+
+    if (activeSessionId) {
+      // Update existing session
+      setHistory(prev =>
+        prev.map(item =>
+          item.id === activeSessionId
+            ? {
+                ...item,
+                patientDetails: { ...patientDetails },
+                transcript,
+                summary: summaryText,
+                summaryType: type
+              }
+            : item
+        )
+      );
+      setLoadedSummary(summaryText);
+      setLoadedSummaryType(type as SummaryType);
+    } else {
+      // Create new session
+      const newItem: HistoryItem = {
+        id: crypto.randomUUID(),
+        patientDetails: { ...patientDetails },
+        transcript,
+        summary: summaryText,
+        summaryType: type,
+        timestamp: Date.now()
+      };
+      setHistory(prev => [newItem, ...prev]);
+      setActiveSessionId(newItem.id);
+      setLoadedSummary(summaryText);
+      setLoadedSummaryType(type as SummaryType);
+    }
+  };
+
+  // Load a consultation from History
+  const handleSelectItem = (item: HistoryItem) => {
+    setPatientDetails(item.patientDetails);
+    setTranscript(item.transcript);
+    setLoadedSummary(item.summary);
+    setLoadedSummaryType(item.summaryType as SummaryType);
+    setActiveSessionId(item.id);
+    setIsHistoryOpen(false);
+  };
+
+  // Delete a single consultation from History
+  const handleDeleteItem = (id: string) => {
+    setHistory(prev => prev.filter(item => item.id !== id));
+    if (activeSessionId === id) {
+      setActiveSessionId(null);
+      setLoadedSummary("");
+    }
+  };
+
+  // Clear all consultation history
+  const handleClearAll = () => {
+    setHistory([]);
+    setActiveSessionId(null);
+    setLoadedSummary("");
+  };
+
+  // Check if current page state is saved to the active session history item
+  const hasSavedThisSession = history.some(
+    item =>
+      item.id === activeSessionId &&
+      item.transcript.trim() === transcript.trim() &&
+      item.summary.trim() === loadedSummary.trim() &&
+      JSON.stringify(item.patientDetails) === JSON.stringify(patientDetails)
+  );
+
   return (
     <div className="min-h-screen bg-white text-gray-900 flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 select-none">
       <div className="w-full max-w-5xl flex flex-col flex-grow space-y-6">
         <Header />
+
+        {/* Action bar for History and Help */}
+        <div className="flex justify-between items-center w-full">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            {activeSessionId ? "Viewing Loaded Session" : "New Consultation"}
+          </span>
+          <div className="flex gap-2.5">
+            <button
+              onClick={() => setIsSampleOpen(true)}
+              className="inline-flex items-center text-xs font-bold text-gray-700 hover:text-gray-900 gap-1.5 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200/60 rounded-full transition-all cursor-pointer focus:outline-none shadow-xs"
+            >
+              <FileText className="w-3.5 h-3.5 text-primary" />
+              Sample Output
+            </button>
+            <button
+              onClick={() => setIsHelpOpen(true)}
+              className="inline-flex items-center text-xs font-bold text-gray-500 hover:text-gray-700 gap-1.5 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200/60 rounded-full transition-all cursor-pointer focus:outline-none"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              How to Use
+            </button>
+            <button
+              onClick={() => setIsHistoryOpen(true)}
+              className="inline-flex items-center text-xs font-bold text-primary hover:text-primary-hover gap-1.5 px-4 py-2 bg-primary-light/50 hover:bg-primary-light/80 rounded-full transition-all cursor-pointer shadow-sm focus:outline-none"
+            >
+              <History className="w-3.5 h-3.5" />
+              History ({history.length})
+            </button>
+          </div>
+        </div>
 
         {/* Microphone Permission Warning */}
         {micPermission === "denied" && (
@@ -134,21 +279,30 @@ function App() {
           </div>
         )}
 
-        {/* Recording Console */}
-        <div className="flex flex-col items-center justify-center p-6 border border-gray-100 rounded-2xl bg-gray-50/50 shadow-sm">
-          <RecordingButton
-            isRecording={isAudioRecording}
-            onClick={handleToggleRecording}
-            disabled={!isSpeechSupported && micPermission !== "denied"}
+        {/* Details & Recording Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full items-stretch">
+          <PatientDetails
+            details={patientDetails}
+            onChange={setPatientDetails}
+            disabled={isAudioRecording}
           />
-          <RecordingTimer seconds={seconds} />
-          <AudioVisualizer stream={audioStream} isRecording={isAudioRecording} />
-          <RecordingStatus status={status} />
-          {recognitionError && (
-            <div className="mt-2 text-xs text-red-600 font-medium text-center bg-red-50 px-3 py-1.5 rounded-md border border-red-100 max-w-xs">
-              {recognitionError}
-            </div>
-          )}
+
+          {/* Recording Console */}
+          <div className="flex flex-col items-center justify-center p-6 border border-gray-100 rounded-xl bg-gray-50/50 shadow-sm min-h-[300px]">
+            <RecordingButton
+              isRecording={isAudioRecording}
+              onClick={handleToggleRecording}
+              disabled={!isSpeechSupported}
+            />
+            <RecordingTimer seconds={seconds} />
+            <AudioVisualizer stream={audioStream} isRecording={isAudioRecording} />
+            <RecordingStatus status={status} />
+            {recognitionError && (
+              <div className="mt-2 text-xs text-red-600 font-medium text-center bg-red-50 px-3 py-1.5 rounded-md border border-red-100 max-w-xs">
+                {recognitionError}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Transcript and Summarization Section */}
@@ -171,14 +325,37 @@ function App() {
           <ClinicalSummary
             transcript={transcript}
             isRecording={isAudioRecording}
+            patientDetails={patientDetails}
+            onSaveHistory={handleSaveHistory}
+            hasSavedThisSession={hasSavedThisSession}
+            initialSummary={loadedSummary}
+            initialSummaryType={loadedSummaryType}
           />
         </div>
 
-        {/* Privacy Shield Info */}
-        <div className="text-center text-xs text-gray-400 font-medium pt-4 pb-2 border-t border-gray-100">
-          Privacy Protection: Audio recordings and transcripts remain local and are never uploaded to servers.
-        </div>
       </div>
+
+      {/* History Drawer */}
+      <HistorySidebar
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        items={history}
+        onSelectItem={handleSelectItem}
+        onDeleteItem={handleDeleteItem}
+        onClearAll={handleClearAll}
+      />
+
+      {/* Onboarding Help Guide Modal */}
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+      />
+
+      {/* Sample Clinical Summary Output Modal */}
+      <SampleSummaryModal
+        isOpen={isSampleOpen}
+        onClose={() => setIsSampleOpen(false)}
+      />
     </div>
   );
 }
