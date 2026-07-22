@@ -2,6 +2,8 @@
 
 SugboDoc is a secure, browser-based medical transcription and offline AI summarization application designed for outpatient clinics, physicians, and administrative staff. It converts spoken medical consultations into structured clinical documentation conforming to international healthcare standards.
 
+Developed by **Orlando Fornolles Jr.** — Software Developer Intern at **SugboDoc Healthcare Systems** & 3rd-Year BS Information Technology Student at **Southwestern University PHINMA**, built with **Google Antigravity AI**.
+
 ---
 
 ## Operating Modes
@@ -56,13 +58,9 @@ Select the desired document format from the dropdown menu and click **Generate A
 * **Microphone Access**: Browser permission must be set to `Allow`.
 
 ### First-Time Setup & Model Caching
-* The system utilizes local offline AI (WebLLM `Llama-3.2-1B-Instruct`) running directly inside the browser.
+* The system utilizes local offline AI (`Llama-3.2-1B-Instruct`) running directly inside the browser via WebGPU.
 * On the first run, the system requires an active internet connection to download approximately 1.2 GB of model weights.
-* Once downloaded, model weights are cached locally in the browser's Cache Storage. Subsequent uses operate completely offline without internet.
-
-### Troubleshooting Network & Cache Errors
-* If the initial download fails due to an interrupted connection, an error message will appear.
-* Click **Reset local AI Cache** in the error alert box to purge incomplete files and retry the download.
+* Once downloaded, model weights are cached locally in browser Cache Storage for offline execution.
 
 ---
 
@@ -74,3 +72,18 @@ The generated summaries align with international health informatics standards:
 * **RxNorm**: Medication orders including generic name, brand name, dosage strength, form, quantity, and instructions.
 * **CPT**: Procedure requests with body site, laterality, and classification.
 * **LOINC**: Laboratory and radiology order codes.
+
+---
+
+## Technology Stack & Development Tools
+
+- **Core Framework**: React 19, TypeScript 5, Vite 6
+- **Styling**: Tailwind CSS v4, Vanilla CSS
+- **AI Engine**: WebLLM / WebGPU Local Client AI
+- **AI Pair Programmer & Coding Assistant**: Google Antigravity AI
+
+---
+
+## License & Ownership
+
+Copyright © 2026 **SugboDoc Healthcare Systems**. All Rights Reserved.
