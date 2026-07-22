@@ -1,21 +1,30 @@
 @import "tailwindcss";
 
-@theme {
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
-  --color-primary-light: #DBEAFE;
+/* 
+  OFFICIAL SUGBODOC BRAND DESIGN SYSTEM:
+  - Primary Brand Indigo: #4454c3 (Official SugboDoc.com Color)
+  - Primary Hover: #3644a8
+  - Soft Subtles: #eef2ff
+  - Eye-Comfort Light Canvas: #f4f6f9
+  - Muted Charcoal Text: #1e293b
+*/
 
-  --color-danger: #DC2626;
-  --color-danger-hover: #B91C1C;
-  --color-danger-light: #FEE2E2;
+@theme {
+  --color-primary: #4454c3;
+  --color-primary-hover: #3644a8;
+  --color-primary-light: #eef2ff;
+
+  --color-danger: #e11d48;
+  --color-danger-hover: #be123c;
+  --color-danger-light: #fff1f2;
 
   --font-sans: "Inter", sans-serif;
 }
 
 @layer base {
   body {
-    background-color: #FFFFFF;
-    color: #111827;
+    background-color: #f4f6f9;
+    color: #1e293b;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
