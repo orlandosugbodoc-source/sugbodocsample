@@ -1,89 +1,94 @@
-# SugboDoc Clinical Transcription & Summarization System
+# SugboDoc — Clinical Transcription & Offline AI Summarization
 
-SugboDoc is a secure, browser-based medical transcription and offline AI summarization application designed for outpatient clinics, physicians, and administrative staff. It converts spoken medical consultations into structured clinical documentation conforming to international healthcare standards.
+Welcome to **SugboDoc**, a secure, browser-based medical transcription and offline AI clinical summarization application designed for outpatient clinics, physicians, and medical staff.
 
-Developed by **Orlando Fornolles Jr.** — Software Developer Intern at **SugboDoc Healthcare Systems** & 3rd-Year BS Information Technology Student at **Southwestern University PHINMA**, built with **Google Antigravity AI**.
-
----
-
-## Operating Modes
-
-The system supports two primary modes of operation to accommodate clinical workflows:
-
-### 1. Live Doctor-Patient Consultation
-* **Description**: Record active two-way dialogue between the healthcare provider and the patient.
-* **Best Practices**: Position the microphone between the provider and patient. Ensure symptoms, physical exam findings, diagnoses, and treatment plans are spoken clearly.
-
-### 2. Physician Dictation
-* **Description**: Dictate a single-person verbal summary of the consultation after the patient visit.
-* **Best Practices**: State patient demographics, chief complaints, vital signs, physical exam results, ICD-10 diagnoses, and RxNorm medication orders in sequence.
+Hi! I'm **Orlando Fornolles Jr.**, a 3rd-Year BSIT Student at Southwestern University PHINMA and a Software Developer Intern at **SugboDoc Technologies Inc.**. I built this application using **React, TypeScript, Tailwind CSS, WebLLM / WebGPU**, and paired with **Google Antigravity AI** to help doctors transcribe patient encounters and generate structured medical documentation directly in their browser.
 
 ---
 
-## Standard Workflow
+## 🌟 About The Application
 
-### Step 1: Input Patient Metadata
-Enter the patient's name, age or birthdate (auto-calculated), gender, and consultation date in the **Patient & Visit Details** card.
-
-### Step 2: Select Transcription Language
-Choose the appropriate spoken language for speech recognition:
-* **English** (`en-US`)
-* **Tagalog** (`fil-PH`)
-* **Bisaya / Cebuano** (`ceb-PH`)
-
-### Step 3: Record Consultation
-* Click the **Record** button or press `Alt + R` to start recording.
-* Speak clearly into the microphone. A real-time transcript will appear on screen.
-* Click **Stop** when the consultation or dictation is complete.
-
-### Step 4: Generate Clinical Summary
-Select the desired document format from the dropdown menu and click **Generate AI Summary**:
-* **FHIR Patient Encounter**: Comprehensive report with tabulated ICD-10, RxNorm, CPT, and LOINC data.
-* **SOAP Note**: Standardized Subjective, Objective, Assessment, and Plan documentation.
-* **Patient Instructions**: Patient-friendly self-care and medication intake schedule.
-* **Clinical Memo**: Executive physician referral and handover summary.
-
-### Step 5: Review and Save
-* Use the **Edit** button to make manual corrections to the generated text if necessary.
-* Click **Save to History** to archive the encounter locally in browser storage.
-* Click **Download** to save `.md` markdown summaries or `.txt` raw transcripts.
+Documenting patient consultations manually can be time-consuming for healthcare providers. SugboDoc solves this by offering real-time voice transcription in multiple local Philippine languages (English, Tagalog, Cebuano/Bisaya) and using **local in-browser AI** (`Llama-3.2-1B-Instruct`) via WebGPU to summarize dictations into structured clinical reports offline—ensuring patient data never leaves the local machine.
 
 ---
 
-## System Requirements and Offline AI
+## 🎙️ Operating Modes
 
-### System Requirements
-* **Browser**: Google Chrome (version 113 or higher) or Microsoft Edge (version 113 or higher).
-* **Hardware Acceleration**: Must be enabled in browser settings to support WebGPU.
-* **Microphone Access**: Browser permission must be set to `Allow`.
+SugboDoc supports two primary dictation workflows to fit different clinical settings:
 
-### First-Time Setup & Model Caching
-* The system utilizes local offline AI (`Llama-3.2-1B-Instruct`) running directly inside the browser via WebGPU.
-* On the first run, the system requires an active internet connection to download approximately 1.2 GB of model weights.
-* Once downloaded, model weights are cached locally in browser Cache Storage for offline execution.
+1. **Live Doctor-Patient Consultation**:
+   - Records live dialogue between the doctor and patient during an active office visit.
+   - Captures symptoms, physical exam notes, diagnoses, and treatment plans in real time.
 
----
-
-## Medical Standards Compliance
-
-The generated summaries align with international health informatics standards:
-* **HL7 FHIR**: Encounter metadata, status codes, and clinical structure.
-* **ICD-10-CM**: Tabulated diagnostic codes with rank, clinical status, and verification status.
-* **RxNorm**: Medication orders including generic name, brand name, dosage strength, form, quantity, and instructions.
-* **CPT**: Procedure requests with body site, laterality, and classification.
-* **LOINC**: Laboratory and radiology order codes.
+2. **Physician Dictation**:
+   - Allows the physician to dictate a quick post-visit summary after seeing a patient.
+   - Transcribes chief complaints, vital signs, ICD-10 diagnoses, and medication orders smoothly.
 
 ---
 
-## Technology Stack & Development Tools
+## 🛠️ Step-by-Step Clinical Workflow
 
-- **Core Framework**: React 19, TypeScript 5, Vite 6
+1. **Patient & Visit Details**: Enter patient metadata (Name, Age, Gender, Consultation Date).
+2. **Language Selection**: Choose spoken language for speech recognition (**English**, **Tagalog**, or **Cebuano / Bisaya**).
+3. **Record Encounter**: Click **Record** (`Alt + R`) and speak into the microphone. Transcripts appear live on screen.
+4. **Generate AI Summary**: Pick a structured document format and generate:
+   - **SOAP Notes**: Standardized Subjective, Objective, Assessment, & Plan notes.
+   - **FHIR Patient Encounter**: Detailed healthcare report with tabulated ICD-10, RxNorm, CPT, and LOINC data.
+   - **Patient Care Instructions**: Clear, patient-friendly home care and medication guidelines.
+   - **Clinical Referral Memo**: Executive physician handover summary.
+5. **Review & Export**: Edit generated text manually if needed, save to browser history, or export as `.md` or `.txt` files.
+
+---
+
+## 🔒 Offline Privacy & WebGPU AI Engine
+
+- **100% On-Device AI**: Powered by `Llama-3.2-1B-Instruct` running locally in the browser via WebGPU using WebLLM.
+- **First-Time Setup**: On initial launch, the browser downloads the AI model weights (~1.2 GB) once over internet.
+- **Offline Caching**: Once cached, all transcription processing and AI summarization run completely offline with zero data sent to external cloud servers.
+
+---
+
+## 📅 Latest Updates & Refinements
+
+### July 23, 2026
+
+- **Corporate Entity Alignment**: Updated official company ownership references to **SugboDoc Technologies Inc.** across the documentation.
+- **Humanized Documentation**: Rewrote project overview, feature guides, and workflows in an authentic, developer-friendly voice.
+- **Microphone & Speech Stability**: Enhanced real-time transcript streaming and audio capture error handling across Chrome and Edge browsers.
+- **Medical Standard Output Formatting**: Refined prompt templates for cleaner ICD-10 diagnosis tables and RxNorm dosage formatting.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 19, TypeScript 5, Vite 6
 - **Styling**: Tailwind CSS v4, Vanilla CSS
-- **AI Engine**: WebLLM / WebGPU Local Client AI
-- **AI Pair Programmer & Coding Assistant**: Google Antigravity AI
+- **Local AI Engine**: WebLLM / WebGPU (`Llama-3.2-1B-Instruct`)
+- **Speech Recognition**: Web Speech API (`en-US`, `fil-PH`, `ceb-PH`)
+- **AI Pair Programmer**: Google Antigravity AI
 
 ---
 
-## License & Ownership
+## 💻 Local Setup & Running Locally
 
-Copyright © 2026 **SugboDoc Healthcare Systems**. All Rights Reserved.
+```bash
+# 1. Clone the repository
+git clone https://github.com/orlandosugbodoc-source/sugbodocsample.git
+
+# 2. Navigate to project directory
+cd sugbodocsample
+
+# 3. Install dependencies
+npm install
+
+# 4. Start development server
+npm run dev
+```
+
+Open your browser (`Chrome` or `Edge` with WebGPU enabled) at `http://localhost:5173/`.
+
+---
+
+## 📄 License & Ownership
+
+Copyright © 2026 **SugboDoc Technologies Inc.**. All Rights Reserved.
