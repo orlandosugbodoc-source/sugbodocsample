@@ -2,7 +2,7 @@
 
 SugboDoc is a secure, browser-based medical transcription and offline AI summarization application designed for outpatient clinics, physicians, and administrative staff. It converts spoken medical consultations into structured clinical documentation conforming to international healthcare standards.
 
-Developed by **Orlando Fornolles Jr.** — Software Developer Intern at **SugboDoc Technologies Inc.** & 3rd-Year BS Information Technology Student at **Southwestern University PHINMA**, built with **Google Antigravity AI**.
+Created by **Orlando Fornolles Jr.** — Software Developer Intern at **SugboDoc Technologies Inc.** and 3rd-Year BSIT Student at Southwestern University PHINMA, paired with **Google Antigravity AI**.
 
 ---
 
